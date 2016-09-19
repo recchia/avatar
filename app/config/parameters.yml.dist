@@ -17,3 +17,13 @@ parameters:
 
     # A secret key that's used to generate certain security-related tokens
     secret:            ThisTokenIsNotSoSecretChangeIt
+
+    # Avatar parameters
+    avatar_driver: imagick
+    avatar_dimension_default: 80
+    avatar_max_image_size: 1000
+    avatar_mime_types:
+        - image/jpeg
+        - image/png
+        - image/gif
+        - image/bmp
