@@ -10,6 +10,7 @@ namespace tests\AppBundle\Controller;
 
 use Faker\Factory;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Response;
 
 class AvatarControllerTest extends WebTestCase
 {
@@ -22,7 +23,7 @@ class AvatarControllerTest extends WebTestCase
         $client = static::createClient();
         $client->request('GET', $url);
 
-        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
         $this->assertTrue(
             $client->getResponse()->headers->contains(
