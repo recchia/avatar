@@ -3,6 +3,7 @@
 namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Avatar
@@ -25,6 +26,8 @@ class Avatar
      * @var string
      *
      * @ORM\Column(name="email", type="string", length=60, unique=true)
+     * @Assert\NotBlank(message="You must provide email")
+     * @Assert\Email(message="You must provide a valid email")
      */
     private $email;
 
@@ -38,7 +41,15 @@ class Avatar
     /**
      * @var string
      *
+     * @Assert\NotBlank(message="You must provide encoded image")
+     */
+    private $imageString;
+
+    /**
+     * @var string
+     *
      * @ORM\Column(name="mime_type", type="string", length=20)
+     * @Assert\Choice(choices={"image/jpeg", "image/png", "image/gif", "image/bmp"}, message="Use a valid image type")
      */
     private $mimeType;
 
@@ -52,16 +63,16 @@ class Avatar
     /**
      * @var string
      *
-     * @ORM\Column(name="confirmation_code", type="string", length=65)
+     * @ORM\Column(name="confirmation_token", type="string", length=64, nullable=true)
      */
-    private $confirmationCode;
+    private $confirmationToken;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="delete_code", type="string", length=64, nullable=true)
+     * @ORM\Column(name="delete_token", type="string", length=64, nullable=true)
      */
-    private $deleteCode;
+    private $deleteToken;
 
     /**
      * @var \DateTime
@@ -70,6 +81,13 @@ class Avatar
      */
     private $createdAt;
 
+    /**
+     * Avatar constructor.
+     */
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
 
     /**
      * Get id
@@ -156,13 +174,13 @@ class Avatar
     /**
      * Set confirmationCode
      *
-     * @param string $confirmationCode
+     * @param string $confirmationToken
      *
      * @return Avatar
      */
-    public function setConfirmationCode($confirmationCode)
+    public function setConfirmationToken($confirmationToken)
     {
-        $this->confirmationCode = $confirmationCode;
+        $this->confirmationToken = $confirmationToken;
 
         return $this;
     }
@@ -172,21 +190,21 @@ class Avatar
      *
      * @return string
      */
-    public function getConfirmationCode()
+    public function getConfirmationToken()
     {
-        return $this->confirmationCode;
+        return $this->confirmationToken;
     }
 
     /**
      * Set deleteCode
      *
-     * @param string $deleteCode
+     * @param string $deleteToken
      *
      * @return Avatar
      */
-    public function setDeleteCode($deleteCode)
+    public function setDeleteToken($deleteToken)
     {
-        $this->deleteCode = $deleteCode;
+        $this->deleteToken = $deleteToken;
 
         return $this;
     }
@@ -196,9 +214,9 @@ class Avatar
      *
      * @return string
      */
-    public function getDeleteCode()
+    public function getDeleteToken()
     {
-        return $this->deleteCode;
+        return $this->deleteToken;
     }
 
     /**
@@ -248,4 +266,21 @@ class Avatar
     {
         return $this->mimeType;
     }
+
+    /**
+     * @return string
+     */
+    public function getImageString()
+    {
+        return $this->imageString;
+    }
+
+    /**
+     * @param string $imageString
+     */
+    public function setImageString($imageString)
+    {
+        $this->imageString = $imageString;
+    }
+
 }

@@ -6,7 +6,6 @@ parameters:
         driver: "%avatar_driver%"
         dimension_default: "%avatar_dimension_default%"
         max_image_size: "%avatar_max_image_size%"
-        mime_types: "%avatar_mime_types%"
 
 services:
 #    service_name:
