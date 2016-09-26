@@ -37,4 +37,14 @@ class AvatarService
             'response' => new SymfonyResponseFactory()
         ]);
     }
+
+    public function getServer()
+    {
+        return $this->server;
+    }
+
+    public function getDefaultDimension()
+    {
+        return $this->defaultDimension;
+    }
 }
