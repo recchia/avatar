@@ -39,7 +39,7 @@ class AvatarController extends Controller
      * @Method("POST")
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return JsonResponse|Response
      */
     public function postAction(Request $request)
     {
