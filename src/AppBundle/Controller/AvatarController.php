@@ -83,6 +83,40 @@ class AvatarController extends Controller
     }
 
     /**
+     * @Route("/avatars/{hash}")
+     * @Method("DELETE")
+     *
+     * @param $hash
+     * @return JsonResponse
+     */
+    public function deleteAction($hash)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['hash' => $hash]);
+
+        if ($avatar instanceof Avatar) {
+            $token = md5(uniqid($avatar->getEmail(), true));
+            $avatar->setDeleteToken($token);
+            $em->flush();
+
+            $body = 'For image delete validation please click on <a href="' . $this->generateUrl(
+                    'avatar.confirm',
+                    ['action' => 'delete', 'token' => $token],
+                    UrlGeneratorInterface::ABSOLUTE_URL
+                ) . '">confirm</a>';
+            $this->sendMail('Confirm image delete', $avatar->getEmail(), $body);
+
+            return new JsonResponse(['email' => $avatar->getEmail()]);
+        } else {
+            return new JsonResponse([
+                'code' => 400000,
+                'message' => 'avatar not found',
+                'link' => ''
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
      * @Route("/confirmation/{action}/{token}", name="avatar.confirm")
      * @Method("GET")
      *
@@ -93,28 +127,36 @@ class AvatarController extends Controller
     public function confirmationAction($action, $token)
     {
         $em = $this->getDoctrine()->getManager();
-        $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['confirmationToken' => $token]);
-        if ($avatar instanceof Avatar) {
-            $email = $avatar->getEmail();
-            switch ($action) {
-                case 'upload':
+        $notFound = [
+            'code' => 400000,
+            'message' => 'avatar not found',
+            'link' => ''
+        ];
+
+        switch ($action) {
+            case 'upload':
+                $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['confirmationToken' => $token]);
+                if ($avatar instanceof Avatar) {
+                    $email = $avatar->getEmail();
                     $avatar->setActive(true);
                     $avatar->setConfirmationToken(null);
                     $em->flush();
-                    break;
-                case 'delete':
+                } else {
+                    return new JsonResponse($notFound, JsonResponse::HTTP_NOT_FOUND);
+                }
+                break;
+            case 'delete':
+                $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['deleteToken' => $token]);
+                if ($avatar instanceof Avatar) {
+                    $email = $avatar->getEmail();
                     $em->remove($avatar);
                     $em->flush();
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            return new JsonResponse([
-                'code' => 400000,
-                'message' => 'avatar not found',
-                'link' => ''
-            ], JsonResponse::HTTP_NOT_FOUND);
+                } else {
+                    return new JsonResponse($notFound, JsonResponse::HTTP_NOT_FOUND);
+                }
+                break;
+            default:
+                break;
         }
 
         return new JsonResponse(['email' => $email]);
