@@ -33,7 +33,7 @@ class AvatarController extends Controller
     public function getAction($hash, $s = null)
     {
         $em = $this->getDoctrine()->getManager();
-        $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['hash' => $hash]);
+        $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['hash' => $hash, 'active' => true]);
         if ($avatar instanceof Avatar) {
             $serverImage = $this->get('avatar_service')->getServer();
             $dimension = !is_null($s) ? $s : $this->get('avatar_service')->getDefaultDimension();
@@ -70,11 +70,11 @@ class AvatarController extends Controller
         $token = md5(uniqid($avatar->getEmail(), true));
         $body = 'For image upload validation please click on <a href="' . $this->generateUrl(
                 'avatar.confirm',
-                ['action' => 'upload', 'token' => $token],
+                ['token' => $token],
                 UrlGeneratorInterface::ABSOLUTE_URL
             ) . '">confirm</a>';
         $this->sendMail('Confirm image upload', $avatar->getEmail(), $body);
-        $avatar->setConfirmationToken($token);
+        $avatar->setToken($token);
         $em = $this->getDoctrine()->getManager();
         $em->persist($avatar);
         $em->flush();
@@ -96,12 +96,12 @@ class AvatarController extends Controller
 
         if ($avatar instanceof Avatar) {
             $token = md5(uniqid($avatar->getEmail(), true));
-            $avatar->setDeleteToken($token);
+            $avatar->setToken($token);
             $em->flush();
 
             $body = 'For image delete validation please click on <a href="' . $this->generateUrl(
                     'avatar.confirm',
-                    ['action' => 'delete', 'token' => $token],
+                    ['token' => $token],
                     UrlGeneratorInterface::ABSOLUTE_URL
                 ) . '">confirm</a>';
             $this->sendMail('Confirm image delete', $avatar->getEmail(), $body);
@@ -117,46 +117,34 @@ class AvatarController extends Controller
     }
 
     /**
-     * @Route("/confirmation/{action}/{token}", name="avatar.confirm")
+     * @Route("/confirmation/{token}", name="avatar.confirm")
      * @Method("GET")
      *
-     * @param $action
      * @param $token
      * @return JsonResponse
      */
-    public function confirmationAction($action, $token)
+    public function confirmationAction($token)
     {
         $em = $this->getDoctrine()->getManager();
-        $notFound = [
-            'code' => 400000,
-            'message' => 'avatar not found',
-            'link' => ''
-        ];
+        $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['token' => $token]);
 
-        switch ($action) {
-            case 'upload':
-                $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['confirmationToken' => $token]);
-                if ($avatar instanceof Avatar) {
-                    $email = $avatar->getEmail();
-                    $avatar->setActive(true);
-                    $avatar->setConfirmationToken(null);
-                    $em->flush();
-                } else {
-                    return new JsonResponse($notFound, JsonResponse::HTTP_NOT_FOUND);
-                }
-                break;
-            case 'delete':
-                $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['deleteToken' => $token]);
-                if ($avatar instanceof Avatar) {
-                    $email = $avatar->getEmail();
-                    $em->remove($avatar);
-                    $em->flush();
-                } else {
-                    return new JsonResponse($notFound, JsonResponse::HTTP_NOT_FOUND);
-                }
-                break;
-            default:
-                break;
+        if ($avatar instanceof Avatar) {
+            $email = $avatar->getEmail();
+
+            if ($avatar->getActive()) {
+                $em->remove($avatar);
+            } else {
+                $avatar->setActive(true);
+                $avatar->setToken('');
+            }
+
+            $em->flush();
+        } else {
+            return new JsonResponse([
+                'code' => 400000,
+                'message' => 'avatar not found',
+                'link' => ''
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         return new JsonResponse(['email' => $email]);

@@ -63,16 +63,9 @@ class Avatar
     /**
      * @var string
      *
-     * @ORM\Column(name="confirmation_token", type="string", length=64, nullable=true)
+     * @ORM\Column(name="token", type="string", length=64, nullable=true)
      */
-    private $confirmationToken;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="delete_token", type="string", length=64, nullable=true)
-     */
-    private $deleteToken;
+    private $token;
 
     /**
      * @var \DateTime
@@ -172,51 +165,27 @@ class Avatar
     }
 
     /**
-     * Set confirmationCode
+     * Set token
      *
-     * @param string $confirmationToken
+     * @param string $token
      *
      * @return Avatar
      */
-    public function setConfirmationToken($confirmationToken)
+    public function setToken($token)
     {
-        $this->confirmationToken = $confirmationToken;
+        $this->token = $token;
 
         return $this;
     }
 
     /**
-     * Get confirmationCode
+     * Get token
      *
      * @return string
      */
-    public function getConfirmationToken()
+    public function getToken()
     {
-        return $this->confirmationToken;
-    }
-
-    /**
-     * Set deleteCode
-     *
-     * @param string $deleteToken
-     *
-     * @return Avatar
-     */
-    public function setDeleteToken($deleteToken)
-    {
-        $this->deleteToken = $deleteToken;
-
-        return $this;
-    }
-
-    /**
-     * Get deleteCode
-     *
-     * @return string
-     */
-    public function getDeleteToken()
-    {
-        return $this->deleteToken;
+        return $this->token;
     }
 
     /**
