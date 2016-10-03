@@ -23,28 +23,23 @@ class AvatarController extends Controller
     }
 
     /**
-     * @Route("/avatars/{hash}/{s}")
+     * @Route("/avatars/{hash}/{d}/{s}")
      * @Method("GET")
      *
      * @param $hash
      * @param $s
+     * @param $d
      * @return JsonResponse
      */
-    public function getAction($hash, $s = null)
+    public function getAction($hash, $s = null, $d = null)
     {
         $em = $this->getDoctrine()->getManager();
         $avatar = $em->getRepository('AppBundle:Avatar')->findOneBy(['hash' => $hash, 'active' => true]);
+        $serverImage = $this->get('avatar_service');
         if ($avatar instanceof Avatar) {
-            $serverImage = $this->get('avatar_service')->getServer();
-            $dimension = !is_null($s) ? $s : $this->get('avatar_service')->getDefaultDimension();
-
-            return $serverImage->getImageResponse($avatar->getHash(), ['w' => $dimension, 'h' => $dimension]);
+            return $serverImage->getImageResponse($avatar->getHash(), $s);
         } else {
-            return new JsonResponse([
-                'code' => 400000,
-                'message' => 'avatar not found',
-                'link' => ''
-            ], JsonResponse::HTTP_NOT_FOUND);
+            return $serverImage->getAlternative($s, $d);
         }
     }
 
